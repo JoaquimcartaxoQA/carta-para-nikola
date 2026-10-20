@@ -74,7 +74,7 @@ export const MainMenuView: React.FC<MainMenuViewProps> = ({
           <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-tr from-amber-500 via-red-600 to-indigo-900 p-1 shadow-2xl animate-pulse">
             <div className="w-full h-full rounded-[22px] bg-slate-950 flex items-center justify-center overflow-hidden border-2 border-amber-400">
               <img
-                src="/icon.svg"
+                src={`${import.meta.env.BASE_URL}icon.svg`}
                 alt="Ícone Nikola Race"
                 className="w-full h-full object-contain p-2 transform group-hover:scale-110 transition duration-300"
               />
