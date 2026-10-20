@@ -6,6 +6,7 @@
 import { CarState, RacerId, Obstacle, SceneryItem } from '../types/game';
 import { TrackData } from './trackData';
 import { RACER_PROFILES } from './physics';
+import { getCanvasPixelRatio, getResponsiveCameraZoom } from './viewport';
 
 export class GameRenderer {
   private ctx: CanvasRenderingContext2D;
@@ -20,17 +21,15 @@ export class GameRenderer {
     this.ctx = canvas.getContext('2d', { alpha: false })!;
   }
 
-  public resize(width: number, height: number) {
+  public resize(width: number, height: number, devicePixelRatio = 1) {
     this.width = width;
     this.height = height;
-    // Ajusta o zoom da câmera para manter boa visibilidade tanto em mobile quanto em telas grandes
-    if (width < 640) {
-      this.cameraZoom = 0.75;
-    } else if (width < 1024) {
-      this.cameraZoom = 0.88;
-    } else {
-      this.cameraZoom = 1.0;
-    }
+    this.cameraZoom = getResponsiveCameraZoom(width, height);
+
+    const pixelRatio = getCanvasPixelRatio(devicePixelRatio);
+    this.ctx.canvas.width = Math.max(1, Math.round(width * pixelRatio));
+    this.ctx.canvas.height = Math.max(1, Math.round(height * pixelRatio));
+    this.ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
   }
 
   public render(

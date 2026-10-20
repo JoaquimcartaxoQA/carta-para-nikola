@@ -49,7 +49,7 @@ export const HUD: React.FC<HUDProps> = ({
   const currentPosLabel = positionLabels[Math.min(2, Math.max(0, nikola.position - 1))];
 
   return (
-    <div className="absolute inset-0 pointer-events-none p-3 sm:p-5 flex flex-col justify-between">
+    <div className="game-hud absolute inset-0 pointer-events-none flex flex-col justify-between">
       
       {/* Top Bar HUD: Posição, Volta, Tempo, Som, Pausa */}
       <div className="flex items-center justify-between gap-2">

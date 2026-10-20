@@ -18,6 +18,7 @@ import { HUD } from './HUD';
 import { TouchControls } from './TouchControls';
 import { CountdownOverlay } from './CountdownOverlay';
 import { PauseModal } from './PauseModal';
+import { getCanvasPixelRatio } from '../game/viewport';
 
 interface RaceCanvasProps {
   trackId: TrackId;
@@ -254,18 +255,27 @@ export const RaceCanvas: React.FC<RaceCanvasProps> = ({
     const handleResize = () => {
       const parent = canvas.parentElement;
       if (!parent) return;
-      const w = parent.clientWidth;
-      const h = parent.clientHeight;
-      canvas.width = w;
-      canvas.height = h;
-      rendererRef.current?.resize(w, h);
+      const { width, height } = parent.getBoundingClientRect();
+      if (width <= 0 || height <= 0) return;
+      rendererRef.current?.resize(width, height, getCanvasPixelRatio(window.devicePixelRatio || 1));
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    window.visualViewport?.addEventListener('resize', handleResize);
+
+    const parent = canvas.parentElement;
+    const resizeObserver = parent && typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(handleResize)
+      : null;
+    if (parent) resizeObserver?.observe(parent);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      resizeObserver?.disconnect();
     };
   }, []);
 
@@ -413,7 +423,7 @@ export const RaceCanvas: React.FC<RaceCanvasProps> = ({
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-slate-950 select-none">
+    <div className="game-viewport relative w-full overflow-hidden bg-slate-950 select-none">
       
       {/* HTML5 Canvas Viewport */}
       <canvas

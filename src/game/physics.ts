@@ -413,16 +413,16 @@ function updateBot(
   if (isLastLap) {
     // Na última volta, os bots NUNCA ultrapassam Nikola e NUNCA chegam em 1º!
     if (botScore >= nikolaScore - 200 || distToNikola < 220) {
-      targetSpeed = Math.min(targetSpeed, Math.max(2.5, nikola.speed * 0.78));
+      targetSpeed = Math.min(targetSpeed, Math.max(2.5, bot.maxSpeed * 0.72));
     }
   } else {
     // Em voltas normais:
     // Se o bot estiver à frente de Nikola, alivia imediatamente para Nikola ultrapassar!
     if (botScore >= nikolaScore) {
-      targetSpeed = Math.min(3.2, nikola.speed * 0.75);
+      targetSpeed = Math.min(3.2, targetSpeed);
     } else if (distToNikola < 300) {
       // Quando Nikola está na frente, o bot persegue próximo para dar emoção de corrida
-      targetSpeed = Math.min(targetSpeed, Math.max(3.2, nikola.speed * 0.9));
+      targetSpeed = Math.min(targetSpeed, Math.max(3.2, bot.maxSpeed * 0.68));
     }
   }
 

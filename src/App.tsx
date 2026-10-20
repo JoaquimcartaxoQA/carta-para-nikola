@@ -74,7 +74,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-slate-950 font-sans select-none">
+    <div className="app-viewport relative w-full overflow-hidden bg-slate-950 font-sans select-none">
       
       {/* Botão sutil de Instalação Offline no Menu */}
       {currentView === 'MENU' && !isInstalled && (
