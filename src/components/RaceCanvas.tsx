@@ -13,7 +13,7 @@ import {
   PlayerControls,
 } from '../game/physics';
 import { sound } from '../services/audio';
-import { buildRaceResults } from '../game/raceResults';
+import { buildRaceResults, shouldShowNikolaVictory } from '../game/raceResults';
 import { togglePauseState } from '../game/pause';
 import { HUD } from './HUD';
 import { TouchControls } from './TouchControls';
@@ -61,6 +61,7 @@ export const RaceCanvas: React.FC<RaceCanvasProps> = ({
   const raceStartedRef = useRef<boolean>(false);
   const isPausedRef = useRef<boolean>(false);
   const isFinishedRef = useRef<boolean>(false);
+  const hasPresentedWinnerRef = useRef<boolean>(false);
   const animFrameIdRef = useRef<number | null>(null);
   const countdownTimersRef = useRef<NodeJS.Timeout[]>([]);
   const finishTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -93,6 +94,7 @@ export const RaceCanvas: React.FC<RaceCanvasProps> = ({
     setCountdown(3);
     raceStartedRef.current = false;
     isFinishedRef.current = false;
+    hasPresentedWinnerRef.current = false;
     elapsedMsRef.current = 0;
     setElapsedTimeMs(0);
     lastFrameTimeRef.current = performance.now();
@@ -326,9 +328,9 @@ export const RaceCanvas: React.FC<RaceCanvasProps> = ({
           setElapsedTimeMs(elapsedMsRef.current);
         }
 
-        // Exibir resultados somente depois que todos concluírem a corrida
         const allRacersFinished = (['nikola', 'rafael', 'hevila'] as RacerId[])
           .every((id) => updatedCars[id].finishTime !== null);
+
         if (allRacersFinished && !isFinishedRef.current) {
           isFinishedRef.current = true;
           sound.stopEngine();
@@ -336,12 +338,21 @@ export const RaceCanvas: React.FC<RaceCanvasProps> = ({
           const results: RaceResult[] = buildRaceResults(updatedCars);
           const winner = results[0];
 
+          if (winner.racerId === 'nikola' && !hasPresentedWinnerRef.current) {
+            hasPresentedWinnerRef.current = true;
+            sound.playVictoryFanfare();
+          }
+
+          // Atualiza a classificação final após os bots concluírem a prova.
           finishTimeoutRef.current = setTimeout(() => {
-            if (winner.racerId === 'nikola') {
-              sound.playVictoryFanfare();
-            }
             onFinishRace(results, winner.racerId, winner.timeMs);
           }, 1800);
+        } else if (!hasPresentedWinnerRef.current && shouldShowNikolaVictory(updatedCars)) {
+          // Nikola já é o primeiro a terminar; os outros corredores seguem até a linha.
+          hasPresentedWinnerRef.current = true;
+          sound.playVictoryFanfare();
+          const results: RaceResult[] = buildRaceResults(updatedCars);
+          onFinishRace(results, 'nikola', updatedCars.nikola.finishTime!);
         }
       }
 

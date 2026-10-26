@@ -5,7 +5,7 @@ import { GameRenderer } from '../src/game/renderer';
 import { getTrackData } from '../src/game/trackData';
 import { getCanvasPixelRatio, getResponsiveCameraZoom } from '../src/game/viewport';
 import { togglePauseState } from '../src/game/pause';
-import { buildRaceResults } from '../src/game/raceResults';
+import { buildRaceResults, shouldShowNikolaVictory } from '../src/game/raceResults';
 import type { CarState, RacerId } from '../src/types/game';
 
 const trackData = getTrackData('city');
@@ -122,10 +122,18 @@ test('race results use actual finish times and order', () => {
   assert.deepEqual(results.map((result) => result.timeFormatted), ['00:01.2', '00:02.2', '00:03.2']);
 });
 
-test('race results are withheld until every racer has finished', () => {
+test('race results include only racers with recorded finish times', () => {
   const cars = createInitialCarState(trackData, 2);
   cars.nikola.finishTime = 3210;
-  assert.deepEqual(buildRaceResults(cars), []);
+  assert.deepEqual(buildRaceResults(cars).map((result) => result.racerId), ['nikola']);
+});
+
+test('Nikola victory is presented as soon as he is the first recorded finisher', () => {
+  const cars = createInitialCarState(trackData, 2);
+  cars.nikola.finishTime = 3210;
+  assert.equal(shouldShowNikolaVictory(cars), true);
+  cars.rafael.finishTime = 3000;
+  assert.equal(shouldShowNikolaVictory(cars), false);
 });
 
 test('camera zoom adapts to narrow, short, and high-resolution viewports', () => {
@@ -157,4 +165,39 @@ test('renderer sizes the canvas backing store for the viewport and pixel ratio',
   assert.equal(canvas.width, 780);
   assert.equal(canvas.height, 1688);
   assert.deepEqual(transforms, [[2, 0, 0, 2, 0, 0]]);
+});
+
+
+test('all racers use the same top speed', () => {
+  const controlledTrack = { ...trackData, roadWidth: 100000, obstacles: [] };
+  const cars = createInitialCarState(controlledTrack, 2);
+  const target = trackData.waypoints[1];
+
+  cars.nikola.finishTime = 1;
+  for (const [id, lateralOffset] of [['rafael', -60], ['hevila', 60]] as const) {
+    Object.assign(cars[id], {
+      x: target.x - 300,
+      y: target.y + lateralOffset,
+      angle: 0,
+      speed: cars[id].maxSpeed,
+      nextCheckpointIndex: 1,
+    });
+  }
+
+  updatePhysics(cars, neutralControls, controlledTrack, 2, 1000, 1 / 60, true);
+
+  assert.equal(cars.nikola.maxSpeed, cars.rafael.maxSpeed);
+  assert.equal(cars.nikola.maxSpeed, cars.hevila.maxSpeed);
+  assert.equal(cars.rafael.speed, cars.rafael.maxSpeed);
+  assert.equal(cars.hevila.speed, cars.hevila.maxSpeed);
+});
+
+test('race results show Nikola first when he finishes before the bots', () => {
+  const cars = createInitialCarState(trackData, 2);
+  cars.nikola.finishTime = 3210;
+
+  const results = buildRaceResults(cars);
+
+  assert.deepEqual(results.map((result) => result.racerId), ['nikola']);
+  assert.equal(results[0].timeMs, 3210);
 });

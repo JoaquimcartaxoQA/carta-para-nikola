@@ -383,14 +383,8 @@ function updateBot(
   const steerRate = bot.turnSpeed * 1.15 * (delta * 60);
   bot.angle += Math.max(-steerRate, Math.min(steerRate, angleDiff));
 
-  // Ritmos diferentes dão personalidade aos adversários, sem ajustar a velocidade
-  // em função da posição relativa dos competidores.
-  let targetSpeed = bot.maxSpeed * (botType === 'rafael' ? 0.82 : 0.78);
-
-  // Redução suave em curvas
-  if (Math.abs(angleDiff) > 0.5) {
-    targetSpeed *= 0.75;
-  }
+  // Todos os competidores compartilham a mesma velocidade máxima.
+  const targetSpeed = bot.maxSpeed;
 
   if (bot.speed < targetSpeed) {
     bot.speed = Math.min(targetSpeed, bot.speed + bot.acceleration * (delta * 60));
