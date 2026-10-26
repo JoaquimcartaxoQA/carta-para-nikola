@@ -30,7 +30,7 @@ export const MainMenuView: React.FC<MainMenuViewProps> = ({
   };
 
   return (
-    <div className="menu-viewport relative w-full flex flex-col justify-between p-4 sm:p-8 bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950 text-white overflow-y-auto">
+    <div className="menu-viewport relative w-full flex flex-col justify-between p-4 sm:p-8 bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950 text-white overflow-y-scroll">
       
       {/* Luzes de fundo e pista estilizada */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-25">
