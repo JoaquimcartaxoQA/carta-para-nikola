@@ -55,6 +55,24 @@ test('player 1 acceleration and braking do not change bot throttle or movement',
   assert.deepEqual(botMotion(acceleratingCars), botMotion(brakingCars));
 });
 
+test('bots complete laps independently of Nikola', () => {
+  const cars = createInitialCarState(trackData, 2);
+  cars.nikola.x = 50;
+  cars.nikola.y = 50;
+  cars.nikola.nextCheckpointIndex = 1;
+
+  for (const id of ['rafael', 'hevila'] as const) {
+    cars[id].x = trackData.waypoints[0].x;
+    cars[id].y = trackData.waypoints[0].y;
+    cars[id].nextCheckpointIndex = 0;
+  }
+
+  stepRace(cars, neutralControls);
+
+  assert.equal(cars.rafael.currentLap, 2);
+  assert.equal(cars.hevila.currentLap, 2);
+});
+
 test('camera zoom adapts to narrow, short, and high-resolution viewports', () => {
   assert.equal(getResponsiveCameraZoom(0, 768), 1);
   assert.equal(getResponsiveCameraZoom(320, 568), 0.55);
