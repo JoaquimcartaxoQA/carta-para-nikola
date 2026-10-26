@@ -385,7 +385,7 @@ function updateBot(
 
   // Ritmos diferentes dão personalidade aos adversários, sem ajustar a velocidade
   // em função da posição relativa dos competidores.
-  const targetSpeed = bot.maxSpeed * (botType === 'rafael' ? 0.82 : 0.78);
+  let targetSpeed = bot.maxSpeed * (botType === 'rafael' ? 0.82 : 0.78);
 
   // Redução suave em curvas
   if (Math.abs(angleDiff) > 0.5) {
