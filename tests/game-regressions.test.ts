@@ -4,6 +4,8 @@ import { createInitialCarState, updatePhysics, type PlayerControls } from '../sr
 import { GameRenderer } from '../src/game/renderer';
 import { getTrackData } from '../src/game/trackData';
 import { getCanvasPixelRatio, getResponsiveCameraZoom } from '../src/game/viewport';
+import { togglePauseState } from '../src/game/pause';
+import { buildRaceResults } from '../src/game/raceResults';
 import type { CarState, RacerId } from '../src/types/game';
 
 const trackData = getTrackData('city');
@@ -18,8 +20,7 @@ const neutralControls: PlayerControls = {
 function createControlTestCars() {
   const cars = createInitialCarState(trackData, 2);
 
-  // Keep Nikola far from the bots and mark both bots ahead, exercising the AI's
-  // position-aware pace adjustment without collisions or lap transitions.
+  // Keep Nikola far from the bots so player controls cannot affect their motion.
   Object.assign(cars.nikola, { x: 50, y: 50, speed: 4, lapProgress: 0 });
   Object.assign(cars.rafael, { speed: 3, lapProgress: 300 });
   Object.assign(cars.hevila, { speed: 3, lapProgress: 300 });
@@ -99,6 +100,32 @@ test('bots record their actual finish time before Nikola finishes', () => {
   assert.equal(updatedCars.rafael.finishTime, 8123);
   assert.equal(updatedCars.hevila.finishTime, 8123);
   assert.deepEqual(standings, ['rafael', 'hevila', 'nikola']);
+});
+
+test('pause shortcut state toggles back to running', () => {
+  const pausedRef = { current: false };
+  assert.equal(togglePauseState(pausedRef), true);
+  assert.equal(pausedRef.current, true);
+  assert.equal(togglePauseState(pausedRef), false);
+  assert.equal(pausedRef.current, false);
+});
+
+test('race results use actual finish times and order', () => {
+  const cars = createInitialCarState(trackData, 2);
+  cars.nikola.finishTime = 3210;
+  cars.rafael.finishTime = 1230;
+  cars.hevila.finishTime = 2220;
+  const results = buildRaceResults(cars);
+  assert.deepEqual(results.map((result) => result.racerId), ['rafael', 'hevila', 'nikola']);
+  assert.deepEqual(results.map((result) => result.position), [1, 2, 3]);
+  assert.deepEqual(results.map((result) => result.timeMs), [1230, 2220, 3210]);
+  assert.deepEqual(results.map((result) => result.timeFormatted), ['00:01.2', '00:02.2', '00:03.2']);
+});
+
+test('race results are withheld until every racer has finished', () => {
+  const cars = createInitialCarState(trackData, 2);
+  cars.nikola.finishTime = 3210;
+  assert.deepEqual(buildRaceResults(cars), []);
 });
 
 test('camera zoom adapts to narrow, short, and high-resolution viewports', () => {

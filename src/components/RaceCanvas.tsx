@@ -11,9 +11,10 @@ import {
   createInitialCarState,
   updatePhysics,
   PlayerControls,
-  RACER_PROFILES,
 } from '../game/physics';
 import { sound } from '../services/audio';
+import { buildRaceResults } from '../game/raceResults';
+import { togglePauseState } from '../game/pause';
 import { HUD } from './HUD';
 import { TouchControls } from './TouchControls';
 import { CountdownOverlay } from './CountdownOverlay';
@@ -325,54 +326,21 @@ export const RaceCanvas: React.FC<RaceCanvasProps> = ({
           setElapsedTimeMs(elapsedMsRef.current);
         }
 
-        // Verificar conclusão da corrida (quando Nikola completa a última volta)
-        const nikola = updatedCars.nikola;
-        if (nikola.finishTime !== null && !isFinishedRef.current) {
+        // Exibir resultados somente depois que todos concluírem a corrida
+        const allRacersFinished = (['nikola', 'rafael', 'hevila'] as RacerId[])
+          .every((id) => updatedCars[id].finishTime !== null);
+        if (allRacersFinished && !isFinishedRef.current) {
           isFinishedRef.current = true;
           sound.stopEngine();
 
-          // Nikola é sempre o grande campeão! Papai Rafael em 2º e Mamãe Hevila em 3º
-          const nikolaTime = nikola.finishTime;
-          const rafaelTime = updatedCars.rafael.finishTime ?? (nikolaTime + 1450);
-          const hevilaTime = updatedCars.hevila.finishTime ?? (nikolaTime + 2750);
+          const results: RaceResult[] = buildRaceResults(updatedCars);
+          const winner = results[0];
 
           finishTimeoutRef.current = setTimeout(() => {
-            const formatTime = (ms: number) => {
-              const totalSec = Math.floor(ms / 1000);
-              const min = Math.floor(totalSec / 60);
-              const sec = totalSec % 60;
-              const tenths = Math.floor((ms % 1000) / 100);
-              return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}.${tenths}`;
-            };
-
-            const results: RaceResult[] = [
-              {
-                racerId: 'nikola',
-                name: RACER_PROFILES.nikola.name,
-                position: 1,
-                timeFormatted: formatTime(nikolaTime),
-                timeMs: nikolaTime,
-                isPlayer: true,
-              },
-              {
-                racerId: 'rafael',
-                name: RACER_PROFILES.rafael.name,
-                position: 2,
-                timeFormatted: formatTime(rafaelTime),
-                timeMs: rafaelTime,
-                isPlayer: false,
-              },
-              {
-                racerId: 'hevila',
-                name: RACER_PROFILES.hevila.name,
-                position: 3,
-                timeFormatted: formatTime(hevilaTime),
-                timeMs: hevilaTime,
-                isPlayer: false,
-              },
-            ];
-
-            onFinishRace(results, 'nikola', nikolaTime);
+            if (winner.racerId === 'nikola') {
+              sound.playVictoryFanfare();
+            }
+            onFinishRace(results, winner.racerId, winner.timeMs);
           }, 1800);
         }
       }
@@ -402,7 +370,7 @@ export const RaceCanvas: React.FC<RaceCanvasProps> = ({
 
   // Alternar Pausa
   const handleTogglePause = () => {
-    const nextPaused = !isPaused;
+    const nextPaused = togglePauseState(isPausedRef);
     setIsPaused(nextPaused);
     isPausedRef.current = nextPaused;
     if (nextPaused) {

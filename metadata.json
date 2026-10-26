@@ -1,6 +1,0 @@
-{
-  "name": "Nikola Race: A Grande Corrida",
-  "description": "Jogo de corrida 2D divertido e cartunesco para Nikola Cartaxo correr contra Papai Rafael e Mamãe Hevila em 3 cenários incríveis.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

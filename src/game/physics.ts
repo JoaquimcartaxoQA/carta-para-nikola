@@ -182,26 +182,12 @@ export function updatePhysics(
     updateNikola(nikola, controls, trackData, delta);
   }
 
-  // 2. Atualizar Bots com IA determinística adaptativa
-  // Adiciona um pequeno atraso de reação cartunesco nos primeiros 500ms para Nikola arrancar primeiro!
-  const botCanMove = elapsedTimeMs >= 500;
+  // 2. Atualizar os bots independentemente da posição de Nikola
   const rafael = cars.rafael;
-  if (!rafael.finishTime) {
-    if (botCanMove) {
-      updateBot(rafael, nikola, trackData, 'rafael', totalLaps, delta);
-    } else {
-      rafael.speed = 0;
-    }
-  }
+  if (!rafael.finishTime) updateBot(rafael, trackData, 'rafael', delta);
 
   const hevila = cars.hevila;
-  if (!hevila.finishTime) {
-    if (botCanMove) {
-      updateBot(hevila, nikola, trackData, 'hevila', totalLaps, delta);
-    } else {
-      hevila.speed = 0;
-    }
-  }
+  if (!hevila.finishTime) updateBot(hevila, trackData, 'hevila', delta);
 
   // 3. Colisões com Obstáculos e Boosts
   racerIds.forEach((id) => {
@@ -279,7 +265,7 @@ export function updatePhysics(
     }
 
     // 4. Progresso de Checkpoints e Voltas
-    updateCarLap(car, nikola, waypoints, trackData, totalLaps, elapsedTimeMs, onLapComplete);
+    updateCarLap(car, waypoints, trackData, totalLaps, elapsedTimeMs, onLapComplete);
   });
 
   // 5. Colisão simples entre carros (Bumper car)
@@ -374,10 +360,8 @@ function updateNikola(car: CarState, controls: PlayerControls, trackData: TrackD
 
 function updateBot(
   bot: CarState,
-  nikola: CarState,
   trackData: TrackData,
   botType: 'rafael' | 'hevila',
-  totalLaps: LapCountOption,
   delta: number
 ) {
   const waypoints = trackData.waypoints;
@@ -399,32 +383,9 @@ function updateBot(
   const steerRate = bot.turnSpeed * 1.15 * (delta * 60);
   bot.angle += Math.max(-steerRate, Math.min(steerRate, angleDiff));
 
-  // Inteligência adaptativa infantil (Rubber-banding amigável para Nikola):
-  // O jogo foi feito para uma criança de 6 anos! Nikola deve ter disputas alegres e sempre vencer!
-  const isLastLap = nikola.currentLap >= totalLaps;
-  const distToNikola = Math.hypot(bot.x - nikola.x, bot.y - nikola.y);
-
-  // Velocidade de cruzeiro base
-  let targetSpeed = bot.maxSpeed * (botType === 'rafael' ? 0.82 : 0.78);
-
-  const botScore = bot.currentLap * 10000 + bot.lapProgress;
-  const nikolaScore = nikola.currentLap * 10000 + nikola.lapProgress;
-
-  if (isLastLap) {
-    // Na última volta, os bots NUNCA ultrapassam Nikola e NUNCA chegam em 1º!
-    if (botScore >= nikolaScore - 200 || distToNikola < 220) {
-      targetSpeed = Math.min(targetSpeed, Math.max(2.5, bot.maxSpeed * 0.72));
-    }
-  } else {
-    // Em voltas normais:
-    // Se o bot estiver à frente de Nikola, alivia imediatamente para Nikola ultrapassar!
-    if (botScore >= nikolaScore) {
-      targetSpeed = Math.min(3.2, targetSpeed);
-    } else if (distToNikola < 300) {
-      // Quando Nikola está na frente, o bot persegue próximo para dar emoção de corrida
-      targetSpeed = Math.min(targetSpeed, Math.max(3.2, bot.maxSpeed * 0.68));
-    }
-  }
+  // Ritmos diferentes dão personalidade aos adversários, sem ajustar a velocidade
+  // em função da posição relativa dos competidores.
+  const targetSpeed = bot.maxSpeed * (botType === 'rafael' ? 0.82 : 0.78);
 
   // Redução suave em curvas
   if (Math.abs(angleDiff) > 0.5) {
@@ -444,7 +405,6 @@ function updateBot(
 
 function updateCarLap(
   car: CarState,
-  nikola: CarState,
   waypoints: Waypoint[],
   trackData: TrackData,
   totalLaps: LapCountOption,
@@ -462,37 +422,14 @@ function updateCarLap(
     // Conclusão de volta: ocorre quando o carro passa pelo Waypoint 0 (a Linha de Chegada)
     // tendo completado a volta anterior (prevIndex === 0)
     if (prevIndex === 0) {
-      if (car.isPlayer) {
-        if (car.currentLap < totalLaps) {
-          car.currentLap += 1;
+      if (car.currentLap < totalLaps) {
+        car.currentLap += 1;
+        if (car.isPlayer) {
           sound.playLapChime();
-          if (onLapComplete) {
-            onLapComplete(car.id, car.currentLap);
-          }
-        } else {
-          // Nikola cruzou a linha de chegada na última volta: Vitória!
-          if (car.finishTime === null) {
-            car.finishTime = elapsedTimeMs;
-            sound.playVictoryFanfare();
-          }
+          onLapComplete?.(car.id, car.currentLap);
         }
-      } else {
-        // Para Bots (Papai Rafael e Mamãe Hevila):
-        // Bots só podem avançar de volta se Nikola já estiver nessa volta ou à frente!
-        // E bots NUNCA podem cruzar a linha final antes de Nikola!
-        if (nikola.finishTime !== null) {
-          // Nikola já venceu! Bots cruzam a linha de chegada logo após Nikola
-          if (car.finishTime === null) {
-            car.finishTime = car.id === 'rafael' ? nikola.finishTime + 1400 : nikola.finishTime + 2600;
-            car.currentLap = totalLaps;
-          }
-        } else {
-          // Nikola ainda não completou a corrida
-          if (car.currentLap < nikola.currentLap) {
-            car.currentLap += 1;
-          }
-          // Se o bot já está na mesma volta de Nikola, o bot aguarda Nikola na reta final
-        }
+      } else if (car.finishTime === null) {
+        car.finishTime = elapsedTimeMs;
       }
     }
   }

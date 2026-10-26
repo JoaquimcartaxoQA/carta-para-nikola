@@ -1,6 +1,6 @@
 /**
  * Nikola Race: A Grande Corrida
- * Guia e Botão de Instalação para Celular, Tablet e Computador (100% Offline)
+ * Guia para adicionar o jogo à tela inicial em celular, tablet e computador
  */
 
 import React from 'react';
@@ -43,7 +43,7 @@ export const InstallPromptModal: React.FC<InstallPromptModalProps> = ({ onClose 
             Instalar Nikola Race
           </h3>
           <p className="text-slate-300 font-cartoon text-sm sm:text-base mt-1">
-            Jogue em qualquer lugar, <strong>100% offline e sem internet</strong>!
+            Adicione à tela inicial para abrir o jogo com facilidade pelo GitHub Pages.
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export const InstallPromptModal: React.FC<InstallPromptModalProps> = ({ onClose 
           <div className="bg-emerald-950/60 border-2 border-emerald-500 rounded-2xl p-4 mb-6 flex items-center gap-3">
             <CheckCircle2 className="w-7 h-7 text-emerald-400 shrink-0" />
             <div className="text-left font-cartoon text-sm sm:text-base text-emerald-200">
-              <strong>O jogo já está instalado no seu aparelho!</strong> Você pode abri-lo direto da tela inicial mesmo sem internet.
+              <strong>O atalho do jogo já está instalado no seu aparelho!</strong> Você pode abri-lo direto da tela inicial.
             </div>
           </div>
         ) : isInstallable ? (
