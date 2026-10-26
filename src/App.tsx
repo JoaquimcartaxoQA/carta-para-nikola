@@ -76,14 +76,14 @@ export default function App() {
   return (
     <div className="app-viewport relative w-full overflow-hidden bg-slate-950 font-sans select-none">
       
-      {/* Botão sutil de Instalação Offline no Menu */}
+      {/* Atalho para instalar o jogo, quando o navegador permitir */}
       {currentView === 'MENU' && !isInstalled && (
         <button
           onClick={() => setShowInstallPrompt(true)}
           className="fixed top-4 left-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs font-cartoon font-bold text-amber-300 transition shadow-lg cursor-pointer"
         >
           <Download className="w-3.5 h-3.5 text-amber-400" />
-          <span>Jogar Offline / Instalar</span>
+          <span>Instalar Atalho</span>
         </button>
       )}
 
@@ -142,7 +142,7 @@ export default function App() {
         />
       )}
 
-      {/* MODAL DE GUIA DE INSTALAÇÃO PWA / OFFLINE */}
+      {/* MODAL DE GUIA DE INSTALAÇÃO PWA */}
       {showInstallPrompt && (
         <InstallPromptModal
           onClose={() => setShowInstallPrompt(false)}

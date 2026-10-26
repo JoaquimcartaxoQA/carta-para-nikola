@@ -209,7 +209,7 @@ export const MainMenuView: React.FC<MainMenuViewProps> = ({
         </div>
 
         <div className="text-center text-[11px] font-cartoon text-slate-500 mt-3">
-          Criado com muito carinho por Tio Joaquim para Nikola Cartaxo · 100% Offline
+          Criado com muito carinho por Tio Joaquim para Nikola Cartaxo
         </div>
       </div>
 

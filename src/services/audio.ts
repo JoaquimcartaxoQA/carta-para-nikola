@@ -1,7 +1,7 @@
 /**
  * Nikola Race: A Grande Corrida
  * Sistema de áudio sintetizado com Web Audio API.
- * 100% offline, sem arquivos externos para carregar, perfeito para crianças.
+ * Os efeitos são sintetizados no navegador, sem arquivos de áudio externos.
  */
 
 class SoundEngine {
