@@ -73,6 +73,34 @@ test('bots complete laps independently of Nikola', () => {
   assert.equal(cars.hevila.currentLap, 2);
 });
 
+test('bots record their actual finish time before Nikola finishes', () => {
+  const cars = createInitialCarState(trackData, 2);
+  cars.nikola.x = 50;
+  cars.nikola.y = 50;
+  cars.nikola.nextCheckpointIndex = 1;
+
+  for (const id of ['rafael', 'hevila'] as const) {
+    cars[id].currentLap = 2;
+    cars[id].x = trackData.waypoints[0].x;
+    cars[id].y = trackData.waypoints[0].y;
+    cars[id].nextCheckpointIndex = 0;
+  }
+
+  const { updatedCars, standings } = updatePhysics(
+    cars,
+    neutralControls,
+    trackData,
+    2,
+    8123,
+    1 / 60,
+    true
+  );
+
+  assert.equal(updatedCars.rafael.finishTime, 8123);
+  assert.equal(updatedCars.hevila.finishTime, 8123);
+  assert.deepEqual(standings, ['rafael', 'hevila', 'nikola']);
+});
+
 test('camera zoom adapts to narrow, short, and high-resolution viewports', () => {
   assert.equal(getResponsiveCameraZoom(0, 768), 1);
   assert.equal(getResponsiveCameraZoom(320, 568), 0.55);
