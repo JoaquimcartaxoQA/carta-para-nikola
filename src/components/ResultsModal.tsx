@@ -66,6 +66,7 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
   };
 
   const isNikolaWinner = winnerId === 'nikola';
+  const raceComplete = results.length === 3;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
@@ -100,7 +101,9 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
         {/* PÓDIO DOS 3 COMPETIDORES (Nikola Cartaxo, Papai Rafael, Mamãe Hevila) */}
         <div className="space-y-3 mb-8">
           <div className="text-xs font-cartoon text-slate-400 uppercase tracking-wider font-bold">
-            Classificação Final dos 3 Competidores
+            {raceComplete
+              ? 'Classificação Final dos 3 Competidores'
+              : 'Nikola venceu! Os outros corredores ainda estão terminando a prova.'}
           </div>
 
           {results.map((res, index) => {

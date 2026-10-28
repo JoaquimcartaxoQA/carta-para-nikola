@@ -12,8 +12,9 @@ function formatRaceTime(milliseconds: number): string {
 }
 
 export function buildRaceResults(cars: Record<RacerId, CarState>): RaceResult[] {
-  const finishers = RACER_IDS.map((id) => cars[id]);
-  if (finishers.some((car) => car.finishTime === null)) return [];
+  const finishers = RACER_IDS
+    .map((id) => cars[id])
+    .filter((car) => car.finishTime !== null);
 
   return finishers
     .sort((a, b) => a.finishTime! - b.finishTime!)
@@ -25,4 +26,9 @@ export function buildRaceResults(cars: Record<RacerId, CarState>): RaceResult[] 
       timeMs: car.finishTime!,
       isPlayer: car.isPlayer,
     }));
+}
+
+
+export function shouldShowNikolaVictory(cars: Record<RacerId, CarState>): boolean {
+  return buildRaceResults(cars)[0]?.racerId === 'nikola';
 }
