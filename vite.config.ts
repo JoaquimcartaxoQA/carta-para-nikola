@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 import {VitePWA} from 'vite-plugin-pwa';
+import istanbul from 'vite-plugin-istanbul';
 
 export default defineConfig(() => {
   const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1];
@@ -15,6 +16,7 @@ export default defineConfig(() => {
     base,
     plugins: [
       react(),
+      istanbul({ include: 'src/**', extension: ['.ts', '.tsx'], requireEnv: true }),
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
